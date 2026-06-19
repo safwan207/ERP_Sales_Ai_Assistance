@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahmed Safwan C | Ultimate Interactive Sales ERP</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <style>
+        #live-background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background: #f8fafc; /* Crisp Off-White Base */
+        }
+        /* High-Contrast Crisp White Card Utility */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(2, 132, 199, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(2, 132, 199, 0.2);
+            border-color: rgba(2, 132, 199, 0.4);
+        }
+
+        /* DATA NETWORK INTRO OVERLAY SYSTEM WITH HUD SCI-FI NET EFFECT */
+        #intro-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #111d33 0%, #070d19 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1), opacity 0.6s ease;
+        }
+
+        /* Dynamic HUD circular vector backdrop lines */
+        #intro-overlay::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border: 2px dashed rgba(14, 165, 233, 0.15);
+            border-radius: 50%;
+            animation: spinHUD 25s linear infinite;
+            pointer-events: none;
+        }
+        #intro-overlay::after {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border: 1px solid rgba(234, 179, 8, 0.1);
+            border-radius: 50%;
+            animation: spinHUDReverse 15s linear infinite;
+            pointer-events: none;
+        }
+
+        /* Slide up animation for screen exit trigger */
+        #intro-overlay.exit-active {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .intro-stage {
+            display: flex;
+            flex-direction: row; /* Enforces horizontal alignment */
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            max-width: 950px;
+            width: 90%;
+            padding: 24px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: entryIntroStage 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0.2s;
+            z-index: 10;
+        }
+
+        /* Mobile Responsive Fallback tweak for clean look */
+        @media (max-width: 768px) {
+            .intro-stage {
+                flex-direction: column !important;
+                gap: 20px;
+            }
+        }
+
+        .avatar-box {
+            width: 280px;
+            height: 280px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Clean text card greeting arranged to the right side */
+        .greeting-card {
+            background: #ffffff;
+            color: #0f172a;
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-left: 6px solid #0284c7;
+        }
+
+        /* CANVAS NODE SYSTEM POSITIONED UNDER GREETING */
+        #intro-network-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes entryIntroStage {
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes spinHUD {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(30deg); }
+        }
+        @keyframes spinHUDReverse {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 font-sans antialiased min-h-screen flex flex-col relative">
+
+    <div id="intro-overlay">
+        <canvas id="intro-network-canvas"></canvas>
+
+        <div class="intro-stage">
+            <div class="avatar-box">
+                <img src="cute-cartoon-boy-student-isolated-on-transparent-background-png.webp" alt="Ahmed Safwan Intro Character" class="avatar-img">
+            </div>
+
+            <div class="greeting-card flex flex-col items-start">
+                <h2 class="text-3xl font-black tracking-tight text-slate-900 mb-1">Hi, I am Ahmed Safwan</h2>
+                <h4 class="text-xs font-bold text-sky-600 mb-4 uppercase tracking-widest font-mono">Future Data Analyst</h4>
+                <p class="text-slate-600 text-sm font-medium leading-relaxed max-w-sm mb-6">
+                    This is my project, hope you like it! Let's drop some datasets inside to parse metrics on the fly.
+                </p>
+                <button onclick="dismissIntroOverlay()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-xl shadow-md hover:shadow-sky-500/20 transition-all cubic-bezier(0.4, 0, 0.2, 1) cursor-pointer flex items-center gap-2 group">
+                    Explore Dashboard <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="live-background-canvas"></canvas>
+
+    <header class="border-b border-slate-800 bg-[#0a192f] sticky top-0 z-50 shadow-2xl">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Ahmed Safwan C</h1>
+                <p class="text-sm text-sky-400 font-medium tracking-wide">Future Data Analyst</p>
+            </div>
+            <nav class="flex flex-wrap gap-6 text-sm font-medium">
+                <a href="mailto:ahmedsafwan626@gmail.com" class="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors">
+                    <i class="fa-solid fa-envelope text-white"></i> ahmedsafwan626@gmail.com
+                </a>
+                <a href="https://www.linkedin.com/in/ahmed-safwan-c-/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors">
+                    <i class="fa-brands fa-linkedin text-base text-white"></i> LinkedIn
+                </a>
+                <a href="https://github.com/safwan207" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors">
+                    <i class="fa-brands fa-github text-base text-white"></i> GitHub
+                </a>
+                <a href="https://safwan207.github.io/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors font-semibold">
+                    <i class="fa-solid fa-globe text-white"></i> Portfolio Website
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl w-full mx-auto p-6 flex-1 flex flex-col gap-6 mb-20 relative z-10">
+        
+        <section id="upload-zone" class="border-2 border-dashed border-slate-300 bg-white rounded-2xl p-8 text-center cursor-pointer hover:border-black hover:bg-slate-50 transition-all flex flex-col items-center justify-center min-h-[150px] shadow-sm group">
+            <input type="file" id="file-input" accept=".csv, .xlsx, .xls" class="hidden">
+            <div class="p-4 bg-slate-100 rounded-full text-slate-700 mb-2 group-hover:scale-110 transition-transform duration-300 border border-slate-200" id="upload-icon-container">
+                <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-700" id="upload-title">Drop your Sales ERP dataset here</h3>
+            <p class="text-sm text-slate-500 mt-1" id="upload-subtitle">Drop a file or click here to activate charts</p>
+        </section>
+
+        <div id="python-loading-banner" class="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-4 py-3 rounded-xl flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-spinner animate-spin text-amber-600"></i>
+            <span>Warming up client-side WASM Python context runtime variables... Hang tight.</span>
+        </div>
+
+        <section id="insights-container" class="hidden space-y-6">
+            
+            <div class="glass-card rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
+                <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-3/4">
+                    <div class="flex items-center gap-3 w-full md:w-1/2">
+                        <div class="p-2 bg-sky-600 text-white rounded-xl shadow-md flex-shrink-0"><i class="fa-solid fa-sliders text-xs"></i></div>
+                        <input type="text" id="dashboard-search-input" oninput="handleLiveSearchFilter()" placeholder="Search metrics across items instantly..." 
+                            class="w-full text-sm bg-white text-slate-800 border border-sky-200 rounded-xl px-4 py-2 focus:outline-none focus:border-sky-500 transition-colors shadow-inner">
+                    </div>
+                    <div id="slicer-container" class="hidden items-center gap-2 w-full md:w-1/2">
+                        <label id="slicer-label-text" for="geo-slicer" class="text-xs font-bold text-slate-500 whitespace-nowrap uppercase tracking-wider font-mono">Slicer:</label>
+                        <select id="geo-slicer" onchange="handleLiveSearchFilter()" class="w-full text-xs bg-white text-slate-700 border border-sky-200 rounded-xl px-3 py-2 focus:outline-none focus:border-sky-500 transition-all shadow-sm">
+                            <option value="ALL">All Selected (No Filter)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-semibold text-sky-600 bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200 flex-shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Dynamic Filter Stream Enabled
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="glass-card p-5 rounded-2xl shadow-sm">
+                    <p id="financial-metric-label" class="text-xs font-bold text-slate-400 tracking-wider uppercase font-mono">Total Revenue / Profit</p>
+                    <h4 id="meta-rows" class="text-2xl font-black mt-1 text-sky-600">-</h4>
+                </div>
+                <div class="glass-card p-5 rounded-2xl shadow-sm">
+                    <p class="text-xs font-bold text-slate-400 tracking-wider uppercase font-mono">Total Quantity</p>
+                    <h4 id="meta-cols" class="text-2xl font-black mt-1 text-cyan-600">-</h4>
+                </div>
+                <div class="glass-card p-5 rounded-2xl shadow-sm">
+                    <p class="text-xs font-bold text-slate-400 tracking-wider uppercase font-mono">Total Shipments</p>
+                    <h4 id="meta-nulls" class="text-2xl font-black mt-1 text-emerald-600">-</h4>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="glass-card p-5 rounded-2xl shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2 text-sky-600">
+                            <i class="fa-solid fa-location-dot text-xs"></i>
+                            <h4 id="regional-chart-title" class="font-bold text-slate-700 text-sm">Geographical Breakdown</h4>
+                        </div>
+                        <div class="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px] font-medium border border-sky-200">
+                            <button onclick="changeChartType('regionChart', 'bar')" class="px-2 py-0.5 rounded bg-sky-600 shadow-sm text-white transition-all cursor-pointer">Bar</button>
+                            <button onclick="changeChartType('regionChart', 'line')" class="px-2 py-0.5 rounded text-slate-500 transition-all cursor-pointer">Line</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative h-56 bg-white rounded-xl p-2 border border-sky-100">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2 text-sky-600">
+                            <i class="fa-solid fa-chart-pie text-xs"></i>
+                            <h4 class="font-bold text-slate-700 text-sm">Category Volumes</h4>
+                        </div>
+                        <div class="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px] font-medium border border-sky-200">
+                            <button onclick="changeChartType('categoryChart', 'doughnut')" class="px-2 py-0.5 rounded bg-sky-600 shadow-sm text-white transition-all cursor-pointer">Pie</button>
+                            <button onclick="changeChartType('categoryChart', 'bar')" class="px-2 py-0.5 rounded text-slate-500 transition-all cursor-pointer">Bar</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative h-56 bg-white rounded-xl p-2 border border-sky-100">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl shadow-sm flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2 text-sky-600">
+                            <i class="fa-solid fa-chart-line text-xs"></i>
+                            <h4 class="font-bold text-slate-700 text-sm">Product Velocity</h4>
+                        </div>
+                        <div class="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px] font-medium border border-sky-200">
+                            <button onclick="changeChartType('productChart', 'line')" class="px-2 py-0.5 rounded bg-sky-600 shadow-sm text-white transition-all cursor-pointer">Line</button>
+                            <button onclick="changeChartType('productChart', 'radar')" class="px-2 py-0.5 rounded text-slate-500 transition-all cursor-pointer">Radar</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 relative h-56 bg-white rounded-xl p-2 border border-sky-100">
+                        <canvas id="productChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-sky-200 rounded-2xl overflow-hidden shadow-sm">
+                <div class="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+                    <span class="flex items-center gap-2 text-sky-400"><i class="fa-solid fa-terminal text-xs"></i> Python WASM Analytics Kernel Output</span>
+                </div>
+                <div class="p-4 font-mono text-xs text-emerald-400 whitespace-pre overflow-x-auto bg-slate-950 max-h-32" id="python-terminal-stdout">
+                    Kernel ready. Waiting for transactional inputs...
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        <div id="chat-window" class="hidden w-80 sm:w-96 h-[420px] bg-white border border-sky-200 shadow-2xl rounded-2xl flex-col overflow-hidden mb-4 transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
+            <div class="bg-black p-4 text-white flex justify-between items-center shadow-md">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-sky-400 animate-bounce"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Sales Analytics Copilot</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Interactive Session Running</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs bg-slate-50">
+                <div class="flex gap-2 max-w-[85%]">
+                    <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex-shrink-0 flex items-center justify-center font-bold text-[10px]">AI</div>
+                    <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-3 py-2 text-slate-700 shadow-sm">
+                        Yo! Drop a sales ERP spreadsheet above. Once parsed, you can use the interactive search filter or slicer menu to isolate metrics!
+                    </div>
+                </div>
+            </div>
+
+            <form id="chat-form" onsubmit="handleChatSubmit(event)" class="p-3 bg-white border-t border-slate-200 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Ask about live filtered items..." autocomplete="off"
+                    class="flex-1 text-xs bg-white text-slate-800 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-sky-500 transition-colors">
+                <button type="submit" class="bg-sky-600 hover:bg-slate-800 text-white rounded-xl p-2 cursor-pointer flex items-center justify-center transition-all shadow-md"><i class="fa-solid fa-paper-plane text-xs"></i></button>
+            </form>
+        </div>
+
+        <button onclick="toggleChat()" class="bg-black hover:bg-slate-800 text-white p-4 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center justify-center">
+            <i class="fa-solid fa-message text-xl text-white"></i>
+        </button>
+    </div>
+
+    <script type="py">
+        from pyscript import window, document
+        import json
+
+        def process_sales_metrics(json_data_str):
+            try:
+                data = json.loads(json_data_str)
+                rows = len(data)
+                if rows == 0: return
+                cols = list(data[0].keys())
+                document.getElementById('python-terminal-stdout').innerText = f"[PYTHON ENGINE ACTIVE] Parsed {rows} data rows securely."
+            except Exception as e:
+                document.getElementById('python-terminal-stdout').innerText = f"[PYTHON ERROR] Breakdown: {str(e)}"
+
+        window.executePythonAnalysisPipeline = process_sales_metrics
+        document.getElementById('python-loading-banner').classList.add('hidden')
+    </script>
+
+    <script>
+        function dismissIntroOverlay() {
+            document.getElementById('intro-overlay').classList.add('exit-active');
+        }
+
+        // --- 1. PRE-INTRO CANVAS SCREEN BACKGROUND GRAPHICS ---
+        const introCanvas = document.getElementById('intro-network-canvas');
+        const iCtx = introCanvas.getContext('2d');
+        let introNodes = [];
+
+        function resizeIntroCanvas() {
+            introCanvas.width = window.innerWidth;
+            introCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeIntroCanvas);
+        resizeIntroCanvas();
+
+        class IntroNode {
+            constructor() {
+                this.x = Math.random() * introCanvas.width;
+                this.y = Math.random() * introCanvas.height;
+                this.radius = Math.random() * 2.5 + 1;
+                this.vx = (Math.random() - 0.5) * 0.2;
+                this.vy = (Math.random() - 0.5) * 0.2;
+                this.color = Math.random() > 0.85 ? 'rgba(234, 179, 8, 0.45)' : 'rgba(14, 165, 233, 0.35)';
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > introCanvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > introCanvas.height) this.vy *= -1;
+            }
+            draw() {
+                iCtx.beginPath(); iCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                iCtx.fillStyle = this.color; iCtx.fill();
+            }
+        }
+        for(let i=0; i<65; i++) introNodes.push(new IntroNode());
+
+        function loopIntroGraphicsNetwork() {
+            iCtx.clearRect(0, 0, introCanvas.width, introCanvas.height);
+            introNodes.forEach(node => { node.update(); node.draw(); });
+            
+            for (let i = 0; i < introNodes.length; i++) {
+                for (let j = i + 1; j < introNodes.length; j++) {
+                    const d = Math.hypot(introNodes[i].x - introNodes[j].x, introNodes[i].y - introNodes[j].y);
+                    if (d < 160) {
+                        iCtx.beginPath(); iCtx.moveTo(introNodes[i].x, introNodes[i].y); iCtx.lineTo(introNodes[j].x, introNodes[j].y);
+                        iCtx.strokeStyle = `rgba(14, 165, 233, ${0.12 * (1 - d/160)})`; iCtx.lineWidth = 0.8; iCtx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(loopIntroGraphicsNetwork);
+        }
+        loopIntroGraphicsNetwork();
+
+
+        // --- 2. LIVE APP WORKSPACE LAYER BACKGROUND GRAPHICS ---
+        const canvas = document.getElementById('live-background-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 45;
+
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class NetworkNode {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 2 + 1;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.7)'; ctx.fill();
+            }
+        }
+        for (let i = 0; i < particleCount; i++) particles.push(new NetworkNode());
+
+        function loopBackgroundNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const d = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                    if (d < 130) {
+                        ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(15, 23, 42, ${0.22 * (1 - d / 130)})`; ctx.lineWidth = 0.9; ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(loopBackgroundNetwork);
+        }
+        loopBackgroundNetwork();
+
+
+        // --- 3. BUSINESS INTELLIGENCE AGGREGATION ENGINE ---
+        let globalRawDatasetCache = null;
+        let chartInstances = {};
+        let activeViewTypes = { regionChart: 'bar', categoryChart: 'doughnut', productChart: 'line' };
+        const multiColorPalette = ['#0284c7', '#6366f1', '#0d9488', '#a855f7', '#10b981', '#ec4899', '#f97316', '#3b82f6'];
+
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const insightsContainer = document.getElementById('insights-container');
+        const chatWindow = document.getElementById('chat-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+
+        function toggleChat() {
+            if (chatWindow.classList.contains('hidden')) {
+                chatWindow.classList.remove('hidden');
+                setTimeout(() => chatWindow.classList.remove('scale-95', 'opacity-0'), 10);
+            } else {
+                chatWindow.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => chatWindow.classList.add('hidden'), 300);
+            }
+        }
+
+        function handleLiveSearchFilter() {
+            if (!globalRawDatasetCache) return;
+            const query = document.getElementById('dashboard-search-input').value.toLowerCase().trim();
+            const slicerVal = document.getElementById('geo-slicer').value;
+            
+            const headers = Object.keys(globalRawDatasetCache[0]);
+            let hasRegion = headers.some(h => ['region', 'zone'].some(key => h.toLowerCase().includes(key)));
+            
+            let geoCol = hasRegion ? 
+                locateColumn(headers, ['region', 'zone', 'country', 'state', 'location'], 0) :
+                locateColumn(headers, ['city', 'town', 'village', 'municipality'], 0);
+                
+            let categoryCol = locateColumn(headers, ['category', 'type', 'segment', 'class'], 1);
+            let productCol = locateColumn(headers, ['product', 'item', 'name'], 2);
+
+            const filteredRows = globalRawDatasetCache.filter(row => {
+                const matchesSearch = String(row[geoCol]).toLowerCase().includes(query) ||
+                                      String(row[categoryCol]).toLowerCase().includes(query) ||
+                                      String(row[productCol]).toLowerCase().includes(query);
+                
+                const matchesSlicer = (slicerVal === "ALL" || String(row[geoCol]).trim() === slicerVal.trim());
+                return matchesSearch && matchesSlicer;
+            });
+
+            calculateEnterpriseMetrics(filteredRows);
+        }
+
+        function changeChartType(canvasId, newType) {
+            activeViewTypes[canvasId] = newType;
+            const eventTarget = event.target;
+            const parent = eventTarget.parentElement;
+            Array.from(parent.children).forEach(btn => btn.className = 'px-2 py-0.5 rounded text-slate-500 transition-all cursor-pointer');
+            eventTarget.className = 'px-2 py-0.5 rounded bg-sky-600 shadow-sm text-white transition-all cursor-pointer';
+            handleLiveSearchFilter();
+        }
+
+        function handleChatSubmit(event) {
+            event.preventDefault();
+            const text = chatInput.value.trim();
+            if(!text) return;
+            appendMessageBubble('user', text); chatInput.value = '';
+            setTimeout(() => {
+                appendMessageBubble('ai', "Dashboard operational engine confirmed. Metrics table matrices are recalculating on the fly.");
+            }, 400);
+        }
+
+        function appendMessageBubble(sender, msg) {
+            const w = document.createElement('div');
+            w.className = sender === 'user' ? 'flex justify-end' : 'flex gap-2 max-w-[85%]';
+            w.innerHTML = sender === 'user' ? 
+                `<div class="bg-sky-600 text-white rounded-2xl rounded-tl-none px-3 py-2 max-w-[85%] shadow-sm">${escapeHTML(msg)}</div>` :
+                `<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex-shrink-0 flex items-center justify-center font-bold text-[10px]">AI</div>
+                 <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-3 py-2 text-slate-800 shadow-sm">${escapeHTML(msg)}</div>`;
+            chatMessages.appendChild(w); chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // CORE EVENTS MAPPING FOR BOTH CLICK AND DRAG-AND-DROP METHODS
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('bg-sky-50','border-black'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('bg-sky-50','border-black'));
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault(); uploadZone.classList.remove('bg-sky-50','border-black');
+            if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) processFile(e.target.files[0]); });
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const bytes = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(bytes, { type: 'array' });
+                    globalRawDatasetCache = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+
+                    // Visual cues update completely upon successful verification loop
+                    document.getElementById('upload-icon-container').className = "p-3 bg-emerald-100 rounded-full text-emerald-600 mb-2 border border-emerald-200 animate-bounce";
+                    document.getElementById('upload-icon-container').innerHTML = '<i class="fa-solid fa-circle-check text-xl"></i>';
+                    document.getElementById('upload-title').innerText = "Dataset Successfully Parsed";
+                    document.getElementById('upload-subtitle').innerText = file.name;
+
+                    buildGeoSlicerDropdown(globalRawDatasetCache);
+                    insightsContainer.classList.remove('hidden');
+                    calculateEnterpriseMetrics(globalRawDatasetCache);
+
+                    if (window.executePythonAnalysisPipeline) window.executePythonAnalysisPipeline(JSON.stringify(globalRawDatasetCache));
+                } catch(err) { alert("Matrix parsing error."); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function buildGeoSlicerDropdown(data) {
+            const headers = Object.keys(data[0]);
+            let hasRegion = headers.some(h => ['region', 'zone'].some(key => h.toLowerCase().includes(key)));
+            
+            let geoCol = hasRegion ? 
+                locateColumn(headers, ['region', 'zone', 'country', 'state', 'location'], 0) :
+                locateColumn(headers, ['city', 'town', 'village', 'municipality'], 0);
+            
+            document.getElementById('slicer-label-text').innerText = hasRegion ? "Region Slicer:" : "City Slicer:";
+            
+            const uniqueLocations = [...new Set(data.map(row => String(row[geoCol]).trim()))].filter(Boolean).sort();
+            const dropdown = document.getElementById('geo-slicer');
+            dropdown.innerHTML = hasRegion ? '<option value="ALL">All Regions (No Filter)</option>' : '<option value="ALL">All Cities (No Filter)</option>';
+            
+            uniqueLocations.forEach(loc => {
+                const opt = document.createElement('option');
+                opt.value = loc; opt.innerText = loc;
+                dropdown.appendChild(opt);
+            });
+            document.getElementById('slicer-container').className = "flex items-center gap-2 w-full md:w-1/2";
+        }
+
+        function locateColumn(headers, explicitKeys, alternativeIndex) {
+            let matched = headers.find(h => explicitFallback(h, explicitKeys));
+            return matched !== undefined ? matched : headers[alternativeIndex];
+        }
+
+        function explicitFallback(headerName, lookupArray) {
+            return lookupArray.some(key => String(headerName).toLowerCase().replace(/[^a-z0-9]/g, '').includes(key));
+        }
+
+        function calculateEnterpriseMetrics(data) {
+            if (data.length === 0) return;
+            const headers = Object.keys(globalRawDatasetCache[0]);
+
+            let hasRegion = headers.some(h => ['region', 'zone'].some(key => h.toLowerCase().includes(key)));
+            let geoCol = hasRegion ? 
+                locateColumn(headers, ['region', 'zone', 'country', 'state', 'location'], 0) :
+                locateColumn(headers, ['city', 'town', 'village', 'municipality'], 0);
+
+            let categoryCol = locateColumn(headers, ['category', 'type', 'segment', 'class'], 1);
+            let productCol = locateColumn(headers, ['product', 'item', 'name'], 2);
+            let financialCol = locateColumn(headers, ['profit', 'revenue', 'sales', 'amount', 'total'], headers.length - 1);
+            let quantityCol = locateColumn(headers, ['quantity', 'qty', 'count', 'volume', 'units'], headers.length - 1);
+
+            let isProfit = String(financialCol).toLowerCase().includes('profit');
+            let financialTitleLabel = isProfit ? "Total Profit" : "Total Revenue";
+            
+            document.getElementById('financial-metric-label').innerText = financialTitleLabel;
+            document.getElementById('regional-chart-title').innerText = hasRegion ? `${financialTitleLabel} by Region` : `${financialTitleLabel} by City`;
+
+            let totalFinancialSum = 0; let totalQuantitySum = 0; let totalShipmentsCount = data.length;
+            let geoMap = {}, categoryMap = {}, productMap = {};
+
+            data.forEach(row => {
+                let rawFinancialValue = Number(String(row[financialCol]).replace(/[^0-9.-]/g, '')) || 0;
+                let rawQuantityValue = Number(String(row[quantityCol]).replace(/[^0-9.-]/g, '')) || 0;
+
+                totalFinancialSum += rawFinancialValue; totalQuantitySum += rawQuantityValue;
+
+                let gKey = row[geoCol] !== undefined && row[geoCol] !== "" ? String(row[geoCol]).trim() : (hasRegion ? "Other Region" : "Other City");
+                let cKey = row[categoryCol] !== undefined && row[categoryCol] !== "" ? String(row[categoryCol]).trim() : "Other";
+                let pKey = row[productCol] !== undefined && row[productCol] !== "" ? String(row[productCol]).trim() : "Other";
+
+                geoMap[gKey] = (geoMap[gKey] || 0) + rawFinancialValue;
+                categoryMap[cKey] = (categoryMap[cKey] || 0) + rawQuantityValue;
+                productMap[pKey] = (productMap[pKey] || 0) + rawFinancialValue;
+            });
+
+            document.getElementById('meta-rows').innerText = `₹${totalFinancialSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('meta-cols').innerText = totalQuantitySum.toLocaleString();
+            document.getElementById('meta-nulls').innerText = totalShipmentsCount.toLocaleString();
+
+            createRenderedChart('regionChart', activeViewTypes.regionChart, Object.keys(geoMap), Object.values(geoMap), financialTitleLabel, multiColorPalette);
+            createRenderedChart('categoryChart', activeViewTypes.categoryChart, Object.keys(categoryMap), Object.values(categoryMap), 'Units Sold', multiColorPalette);
+            
+            let topProds = Object.keys(productMap).sort((a,b) => productMap[b] - productMap[a]).slice(0, 6);
+            createRenderedChart('productChart', activeViewTypes.productChart, topProds, topProds.map(p => productMap[p]), financialTitleLabel, multiColorPalette);
+        }
+
+        function createRenderedChart(id, type, labels, values, datasetLabel, palette) {
+            if (chartInstances[id]) chartInstances[id].destroy();
+            const colors = labels.map((_, i) => palette[i % palette.length]);
+            const ctx = document.getElementById(id).getContext('2d');
+            chartInstances[id] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel, data: values,
+                        backgroundColor: type === 'line' || type === 'radar' ? 'rgba(2, 132, 199, 0.05)' : colors,
+                        borderColor: type === 'line' || type === 'radar' ? '#0284c7' : '#ffffff',
+                        pointBackgroundColor: colors, pointBorderColor: '#ffffff', pointRadius: 4,
+                        borderWidth: type === 'line' || type === 'radar' ? 2.5 : 1, 
+                        fill: type === 'line' || type === 'radar', tension: 0.35, borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: type === 'doughnut' || type === 'radar', position: 'bottom', labels: { color: '#475569', boxWidth: 8, font: { size: 9 } } } },
+                    scales: type === 'doughnut' || type === 'radar' ? {} : {
+                        y: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { color: 'rgba(0, 0, 0, 0.04)' } },
+                        x: { ticks: { color: '#64748b', font: { size: 8 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
+        }
+    </script>
+</body>
+</html>
